@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <style>
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+
+        .material-label {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table-bordered {
+            border: 1px solid #dee2e6;
+        }
+
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            margin-top: -20px;
+            margin-left: -20px;
+            z-index: 9999;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .table-bordered td,
+        .table-bordered th {
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="flex flex-row">
+        <button onclick="showPage('books-page')">Книги</button>
+        <button onclick="showPage('add-book-page')">Добавить новую</button>
+    </div>
+    <div id="books-page">
+        <div class="card shadow p-4">
+            <h4 class="mb-4">
+                <span class="material-icons" style="vertical-align: middle;">filter_list</span>
+                Книжный родник
+            </h4>
+
+            <div id="loader" class="loader" style="display:none;"></div>
+
+            <div class="row g-3" align-items-end>
+                <div class="col-md-3">
+                    <label class="material-label">Рубрика</label>
+                    <select id="filterA" class="form-select">
+                        <option value="">Все</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="material-label">Поиск по названию</label>
+                    <input id="filterName" class="form-control" type="text"></input>
+                </div>
+                <div class="col-md-3">
+                    <label class="material-label">Поиск по автору</label>
+                    <input id="filterAuthor" class="form-control" type="text"></input>
+                </div>
+                <div class="col-md-3 float-right">
+                    <button class="btn btn-primary" onclick="loadData()">
+                        <span class="material-icons" style="font-size:18px;vertical-align:middle;">search</span>
+                        Показать
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <table class="table table-striped table-bordered" id="resultTable"></table>
+        </div>
+
+        <!-- Блок пагинации -->
+        <nav>
+            <ul class="pagination justify-content-center mt-3">
+                <li class="page-item">
+                    <button class="page-link" onclick="prevPage()">Предыдущая</button>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link" id="pageInfo">Стр. 1</span>
+                </li>
+                <li class="page-item">
+                    <button class="page-link" onclick="nextPage()">Следующая</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <div id="add-book-page">
+        <span class="card shadow p-4">
+            <h4 class="mb-4">
+                <span class="material-icons" style="vertical-align: middle;">filter_list</span>
+                Добавить книгу
+            </h4>
+            <label>Новый номер</label>
+            <span id="newBookId"></span>
+        <div class="row g-3" align-items-end>
+            <div class="col-md-3 float-right">
+                <button id="new-book-btn" class="btn btn-primary" onclick="addNewBook()">
+                    <span class="material-icons" style="font-size:18px;vertical-align:middle;">search</span>
+                    Новая книга
+                </button>
+            </div>
+        </div>
+        <div class="row g-3" id="add-book-block" style="display: none" align-items-end>
+            <div class="col-md-3">
+                <label class="material-label">Автор</label>
+                <input id="newAuthor" class="form-control" type="text"></input>
+            </div>
+            <div class="col-md-3">
+                <label class="material-label">Название</label>
+                <input id="newName" class="form-control" type="text"></input>
+            </div>
+            <div class="col-md-3">
+                <label class="material-label">Год</label>
+                <input id="newYear" class="form-control" type="number"></input>
+            </div>
+            <div class="col-md-3">
+                <label class="material-label">Аннотация</label>
+                <input id="newAnnotation" class="form-control" type="text"></input>
+            </div>
+            <div class="col-md-3">
+                <label class="material-label">Номер коробки</label>
+                <input id="newBoxNum" class="form-control" type="number"></input>
+            </div>
+            <div class="row g-3" align-items-end>
+                <div class="col-md-3 float-right">
+                    <button class="btn btn-primary" onclick="saveNewBook()">
+                        <span class="material-icons" style="font-size:18px;vertical-align:middle;">search</span>
+                        Сохранить
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="material-label">Рубрика</label>
+                <select id="newTheme" class="form-select">
+                    <option value="">Все</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    let fullData = [];   // Полный набор данных (после фильтра)
+    let filteredData = [];
+    let headers = [];    // Заголовки
+    let currentPage = 1;
+    const pageSize = 20; // Кол-во строк на страницу
+    const addBookFields = [
+        "newAuthor",
+        "newName",
+        "newYear",
+        "newAnnotation",
+        "newBoxNum",
+        "newBookId",
+        "newTheme",
+    ];
+
+    // Загружаем значения для списков
+    window.onload = function () {
+        document.getElementById("add-book-page").style.display = "none";
+        const filterA = document.getElementById('filterA');
+        filterA.removeEventListener("change", loadData);
+        filterA.addEventListener("change", loadData);
+        showLoader();
+        google.script.run.withSuccessHandler(populateDropdowns).getDropdownValues();
+        google.script.run.withSuccessHandler(data => {
+            headers = data.header;
+            fullData = data.rows;
+            filteredData = data.rows;
+            currentPage = 1;
+            hideLoader();
+            renderPage();
+        }).getFilteredData()
+    };
+
+    function populateDropdowns(data) {
+        const selectA = document.getElementById("filterA");
+        const newTheme = document.getElementById("newTheme");
+
+        data.listA.forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = v;
+            selectA.appendChild(opt);
+            newTheme.appendChild(opt);
+        });
+    }
+
+    function loadData() {
+        currentPage = 1
+        var filterA = document.getElementById("filterA").value;
+        var filterName = document.getElementById("filterName").value;
+        var filterAuthor = document.getElementById("filterAuthor").value;
+        filterA = filterA === 'Все' ? '' : filterA;
+        filteredData = fullData.filter(item => {
+            return item[0].includes(filterA) && item[1].includes(filterAuthor) && item[2].includes(filterName);
+        });
+        renderPage();
+    }
+
+    function renderPage() {
+        const table = document.getElementById("resultTable");
+        table.innerHTML = "";
+
+        // Header
+        const headerRow = document.createElement("tr");
+        headers.forEach(h => {
+            const th = document.createElement("th");
+            th.textContent = h;
+            headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
+
+        // Вычисляем диапазон строк
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        const pageRows = filteredData.slice(start, end);
+
+        pageRows.forEach(row => {
+            const tr = document.createElement("tr");
+            row.forEach((cell, index) => {
+                const td = document.createElement("td");
+                if (index === 5) {
+                    if (cell) {
+                        const a = document.createElement("a");
+                        a.href = cell;
+                        a.textContent = "посмотреть"
+                        a.target = "_blank";
+                        td.appendChild(a);
+                    } else {
+                        td.textContent = 'нет картинки';
+                    }
+
+                } else {
+                    td.textContent = cell;
+                }
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+
+        // Обновить инфо
+        const pageInfo = document.getElementById("pageInfo");
+        pageInfo.textContent = "Стр. " + currentPage;
+    }
+
+    function renderBookId(id) {
+        const bookId = document.getElementById("newBookId");
+        bookId.textContent = id;
+    }
+
+    function nextPage() {
+        if (currentPage * pageSize < filteredData.length) {
+            currentPage++;
+            renderPage();
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderPage();
+        }
+    }
+
+    function showLoader() {
+        document.getElementById("loader").style.display = "block";
+    }
+
+    function hideLoader() {
+        document.getElementById("loader").style.display = "none";
+    }
+
+    function showPage(pageId) {
+        document.getElementById("books-page").style.display = "none";
+        document.getElementById("add-book-page").style.display = "none";
+        document.getElementById(pageId).style.display = "block";
+    }
+
+    function addNewBook() {
+        google.script.run.withSuccessHandler(id => {
+            console.log('id', id)
+            renderBookId(id);
+            displayElement("add-book-block", true);
+            displayElement("new-book-btn", false);
+        }).addNewBook();
+    }
+
+    function saveNewBook() {
+        const newAuthor = document.getElementById("newAuthor");
+        const newName = document.getElementById("newName");
+        const newYear = document.getElementById("newYear");
+        const newAnnotation = document.getElementById("newAnnotation");
+        const newBoxNum = document.getElementById("newBoxNum");
+        const newBookId = document.getElementById("newBookId");
+        const newTheme = document.getElementById("newTheme");
+        const book = {
+            author: newAuthor.value,
+            name: newName.value,
+            year: newYear.value,
+            annotation: newAnnotation.value,
+            boxNum: newBoxNum.value,
+            id: newBookId.textContent,
+            theme: newTheme.value
+        };
+        console.log("newBook", newBookId.textContent, book);
+        google.script.run.withSuccessHandler(result => {
+            if (result) {
+                newAuthor.value = '';
+                newName.value = '';
+                newYear.value = '';
+                newAnnotation.value = '';
+                newBoxNum.value = '';
+                newBookId.value = '';
+                newTheme.value = '';
+                displayElement("add-book-block", false);
+                displayElement("new-book-btn", true);
+            }
+        }).saveNewBook(book);
+    }
+
+    function displayElement(id, show) {
+        document.getElementById(id).style.display = show ? 'block' : 'none';
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
