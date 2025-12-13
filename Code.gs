@@ -6,8 +6,10 @@ const YEAR_ROW = 7;
 const ANNOTATION_ROW = 8;
 const BOX_ROW = 11;
 const THEME_ROW = 2;
+const LINK_ROW = 10;
 const TABLE_ID = "1D6J9Li4ZPOh8QSavuVDAvigjBg61ikKpe2BCkVrUdpA";
 const BOOKS_SHEET = "список"
+const BOOK_IMAGE_DIR_ID = "1fnUMKXpSdhLbuF4WZZgSJWb7vFvFCIX5";
 
 function doGet(e) {
   return HtmlService
@@ -93,16 +95,17 @@ function addNewBook(id = null) {
 }
 
 function saveNewBook(book) {
+  book.link = getImageLinkFromFolder(book.id);
   let newRow = createRow(book);
   Logger.log(book);
   replaceRowById(book.id, newRow);
 
- return true;
+  return true;
 }
 
 function createBlankRow(id) {
   const row = [];
-  for(let i = 0; i < 15; i++) {
+  for (let i = 0; i < 15; i++) {
     if (Math.ceil(i) === BOOK_ID_ROW) {
       row.push(id)
     } else if (i === STATE_ROW) {
@@ -117,34 +120,37 @@ function createBlankRow(id) {
 
 function createRow(param) {
   const row = [];
-  for(let i = 0; i < 15; i++) {
-    switch(i) {
-    case THEME_ROW:
-      row.push(param.theme);
-      break;
-    case BOOK_ID_ROW:
-      row.push(param.id);
-      break;
-    case STATE_ROW:
-      row.push('free');
-      break;
-    case AUTHOR_ROW:
-      row.push(param.author);
-      break;
-    case NAME_ROW:
-      row.push(param.name);
-      break;
-    case YEAR_ROW:
-      row.push(param.year);
-      break;
-    case ANNOTATION_ROW:
-      row.push(param.annotation);
-      break;
-    case BOX_ROW:
-      row.push(param.boxNum);
-      break;
-    default:
-      row.push('');
+  for (let i = 0; i < 15; i++) {
+    switch (i) {
+      case THEME_ROW:
+        row.push(param.theme);
+        break;
+      case BOOK_ID_ROW:
+        row.push(param.id);
+        break;
+      case STATE_ROW:
+        row.push('free');
+        break;
+      case AUTHOR_ROW:
+        row.push(param.author);
+        break;
+      case NAME_ROW:
+        row.push(param.name);
+        break;
+      case YEAR_ROW:
+        row.push(param.year);
+        break;
+      case ANNOTATION_ROW:
+        row.push(param.annotation);
+        break;
+      case BOX_ROW:
+        row.push(param.boxNum);
+        break;
+      case LINK_ROW:
+        row.push(param.link);
+        break;
+      default:
+        row.push('');
     }
   }
 
@@ -165,4 +171,18 @@ function replaceRowById(id, newRow) {
   }
 
   throw new Error("Строка с ID не найдена");
+}
+
+function getImageLinkFromFolder(imageId) {
+  const folder = DriveApp.getFolderById(BOOK_IMAGE_DIR_ID);
+
+  const files = folder.getFiles();
+  while (files.hasNext()) {
+    const file = files.next();
+
+    if (file.getName() === imageId + ".jpg") {
+      return file.getUrl();
+    }
+  }
+  throw new Error("Изображение не найдено");
 }

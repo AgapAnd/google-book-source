@@ -68,7 +68,9 @@
 
 <body>
 <div class="container">
+    <span id="error-field" style="color: crimson;display: none"></span>
     <div class="flex flex-row">
+        <div id="loader" class="loader" style="display:none;"></div>
         <button onclick="showPage('books-page')">Книги</button>
         <button onclick="showPage('add-book-page')">Добавить новую</button>
     </div>
@@ -78,8 +80,6 @@
                 <span class="material-icons" style="vertical-align: middle;">filter_list</span>
                 Книжный родник
             </h4>
-
-            <div id="loader" class="loader" style="display:none;"></div>
 
             <div class="row g-3" align-items-end>
                 <div class="col-md-3">
@@ -161,6 +161,12 @@
                 <label class="material-label">Номер коробки</label>
                 <input id="newBoxNum" class="form-control" type="number"></input>
             </div>
+            <div class="col-md-3">
+                <label class="material-label">Рубрика</label>
+                <select id="newTheme" class="form-select">
+                    <option value="">Все</option>
+                </select>
+            </div>
             <div class="row g-3" align-items-end>
                 <div class="col-md-3 float-right">
                     <button class="btn btn-primary" onclick="saveNewBook()">
@@ -169,13 +175,8 @@
                     </button>
                 </div>
             </div>
-            <div class="col-md-3">
-                <label class="material-label">Рубрика</label>
-                <select id="newTheme" class="form-select">
-                    <option value="">Все</option>
-                </select>
-            </div>
         </div>
+            <div id="log-list"></div>
     </div>
 </div>
 </div>
@@ -202,14 +203,14 @@
         const filterA = document.getElementById('filterA');
         filterA.removeEventListener("change", loadData);
         filterA.addEventListener("change", loadData);
-        showLoader();
+        showLoader(true);
         google.script.run.withSuccessHandler(populateDropdowns).getDropdownValues();
         google.script.run.withSuccessHandler(data => {
             headers = data.header;
             fullData = data.rows;
             filteredData = data.rows;
             currentPage = 1;
-            hideLoader();
+            showLoader(false);
             renderPage();
         }).getFilteredData()
     };
@@ -304,12 +305,8 @@
         }
     }
 
-    function showLoader() {
-        document.getElementById("loader").style.display = "block";
-    }
-
-    function hideLoader() {
-        document.getElementById("loader").style.display = "none";
+    function showLoader(show) {
+        document.getElementById("loader").style.display = show ? "block" : "none";
     }
 
     function showPage(pageId) {
@@ -319,15 +316,17 @@
     }
 
     function addNewBook() {
+        showLoader(true);
         google.script.run.withSuccessHandler(id => {
-            console.log('id', id)
             renderBookId(id);
             displayElement("add-book-block", true);
             displayElement("new-book-btn", false);
+            showLoader(false);
         }).addNewBook();
     }
 
     function saveNewBook() {
+        showLoader(true);
         const newAuthor = document.getElementById("newAuthor");
         const newName = document.getElementById("newName");
         const newYear = document.getElementById("newYear");
@@ -344,24 +343,57 @@
             id: newBookId.textContent,
             theme: newTheme.value
         };
-        console.log("newBook", newBookId.textContent, book);
+        console.log(book)
         google.script.run.withSuccessHandler(result => {
             if (result) {
-                newAuthor.value = '';
-                newName.value = '';
-                newYear.value = '';
-                newAnnotation.value = '';
-                newBoxNum.value = '';
-                newBookId.value = '';
-                newTheme.value = '';
+                addLog(`${book.name} ${book.id}`);
+                clearAddFields();
                 displayElement("add-book-block", false);
                 displayElement("new-book-btn", true);
+                renderBookId("");
+                showLoader(false);
+                showError("", false);
             }
-        }).saveNewBook(book);
+        })
+            .withFailureHandler(error => {
+                showError(error, true);
+                showLoader(false);
+            })
+            .saveNewBook(book);
     }
 
     function displayElement(id, show) {
         document.getElementById(id).style.display = show ? 'block' : 'none';
+    }
+
+    function showError(error, show) {
+        const el = document.getElementById("error-field");
+        el.style.display = show ? 'block' : 'none';
+        el.innerText = error;
+    }
+
+    function addLog(id) {
+        el = document.getElementById("log-list");
+        newEl = document.createElement("div");
+        newEl.innerText = id + " добавлена";
+        el.appendChild(newEl);
+    }
+
+    function clearAddFields() {
+        const newAuthor = document.getElementById("newAuthor");
+        const newName = document.getElementById("newName");
+        const newYear = document.getElementById("newYear");
+        const newAnnotation = document.getElementById("newAnnotation");
+        const newBoxNum = document.getElementById("newBoxNum");
+        const newBookId = document.getElementById("newBookId");
+        const newTheme = document.getElementById("newTheme");
+        newAuthor.value = '';
+        newName.value = '';
+        newYear.value = '';
+        newAnnotation.value = '';
+        newBoxNum.value = '';
+        newBookId.value = '';
+        newTheme.value = '';
     }
 </script>
 
