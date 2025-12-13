@@ -186,3 +186,16 @@ function getImageLinkFromFolder(imageId) {
   }
   throw new Error("Изображение не найдено");
 }
+
+function removeRowById(id) {
+  const ss = SpreadsheetApp.openById(TABLE_ID);
+  const sh = ss.getSheetByName(BOOKS_SHEET);
+  const data = sh.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    if (Math.ceil(data[i][BOOK_ID_ROW]) === Math.ceil(id)) {
+      sh.deleteRow(i + 1);
+      return;
+    }
+  }
+}

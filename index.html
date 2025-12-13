@@ -173,6 +173,10 @@
                         <span class="material-icons" style="font-size:18px;vertical-align:middle;">search</span>
                         Сохранить
                     </button>
+                    <button class="btn btn-danger" onclick="cancelNewBook()">
+                        <span class="material-icons" style="font-size:18px;vertical-align:middle;">search</span>
+                        Отмена
+                    </button>
                 </div>
             </div>
         </div>
@@ -394,6 +398,19 @@
         newBoxNum.value = '';
         newBookId.value = '';
         newTheme.value = '';
+    }
+
+    function cancelNewBook() {
+        showLoader(true);
+        const newBookId = document.getElementById("newBookId");
+        google.script.run.withSuccessHandler(result => {
+            clearAddFields();
+            displayElement("add-book-block", false);
+            displayElement("new-book-btn", true);
+            renderBookId("");
+            showLoader(false);
+        })
+            .removeRowById(newBookId.innerText)
     }
 </script>
 
