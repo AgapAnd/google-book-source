@@ -68,7 +68,7 @@
 
 <body>
 <div class="container">
-    <span id="error-field" style="color: crimson;display: none"></span>
+    <span id="error-field" style="color: crimson;display: block"></span>
     <div id="loader" class="loader" style="display:none;"></div>
     <div class="flex flex-row" style="display: none">
         <button onclick="showPage('books-page')">Книги</button>
@@ -164,7 +164,6 @@
             <div class="col-md-3">
                 <label class="material-label">Рубрика</label>
                 <select id="newTheme" class="form-select">
-                    <option value="">Все</option>
                 </select>
             </div>
             <div class="row g-3" align-items-end>
@@ -208,7 +207,12 @@
         filterA.removeEventListener("change", loadData);
         filterA.addEventListener("change", loadData);
         showLoader(true);
-        google.script.run.withSuccessHandler(populateDropdowns).getDropdownValues();
+        google.script.run.withSuccessHandler(data => {
+            populateDropdowns(data, "filterA");
+        }).getDropdownValues();
+        google.script.run.withSuccessHandler(data => {
+            populateDropdowns(data, "newTheme");
+        }).getFullThemes();
         google.script.run.withSuccessHandler(data => {
             headers = data.header;
             fullData = data.rows;
@@ -219,16 +223,13 @@
         }).getFilteredData()
     };
 
-    function populateDropdowns(data) {
-        const selectA = document.getElementById("filterA");
-        const newTheme = document.getElementById("newTheme");
-
-        data.listA.forEach(v => {
+    function populateDropdowns(data, id) {
+        const selectElement = document.getElementById(id);
+        data.forEach(v => {
             const opt = document.createElement("option");
             opt.value = v;
             opt.textContent = v;
-            selectA.appendChild(opt);
-            newTheme.appendChild(opt);
+            selectElement.appendChild(opt);
         });
     }
 

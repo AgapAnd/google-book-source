@@ -9,6 +9,7 @@ const THEME_ROW = 2;
 const LINK_ROW = 10;
 const TABLE_ID = "1D6J9Li4ZPOh8QSavuVDAvigjBg61ikKpe2BCkVrUdpA";
 const BOOKS_SHEET = "список"
+const THEME_SHEET = "рубрикатор (альт)"
 const BOOK_IMAGE_DIR_ID = "1fnUMKXpSdhLbuF4WZZgSJWb7vFvFCIX5";
 
 function doGet(e) {
@@ -69,7 +70,7 @@ function getDropdownValues() {
   })
   const valuesTheme = [...new Set(Array.from(themes.keys()))];
 
-  return { listA: valuesTheme };
+  return valuesTheme ;
 }
 
 function addNewBook(id = null) {
@@ -198,4 +199,15 @@ function removeRowById(id) {
       return;
     }
   }
+}
+
+function getFullThemes() {
+    const ss = SpreadsheetApp.openById(TABLE_ID);
+      const sheet = ss.getSheetByName(THEME_SHEET);
+      const data = sheet.getDataRange().getValues();
+      const themes = [];
+      for (let i = 1; i < data.length; i++) {
+        themes.push(data[i][1])
+      }
+      return themes;
 }
