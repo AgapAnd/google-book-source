@@ -7,6 +7,7 @@ const ANNOTATION_ROW = 8;
 const BOX_ROW = 11;
 const THEME_ROW = 2;
 const LINK_ROW = 10;
+const GLOBAL = {};
 
 function doGet(e) {
   return HtmlService
